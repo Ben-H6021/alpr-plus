@@ -9,12 +9,13 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Stealth.Plugins.ALPRPlus</RootNamespace>
     <AssemblyName>ALPRPlus</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -75,11 +76,17 @@
     <Reference Include="LSPD First Response">
       <HintPath>..\..\DLLs\LSPD First Response.dll</HintPath>
     </Reference>
+    <Reference Include="RAGENativeUI">
+      <HintPath>..\..\..\Immersive-Plugins-Team\Dependencies\RAGENativeUI.dll</HintPath>
+    </Reference>
     <Reference Include="RagePluginHookSDK">
       <HintPath>..\..\DLLs\RagePluginHookSDK.dll</HintPath>
     </Reference>
     <Reference Include="Stealth.Common">
       <HintPath>..\..\DLLs\Stealth.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="StopThePed">
+      <HintPath>S:\Grand Theft Auto V\Plugins\LSPDFR\StopThePed.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -104,7 +111,9 @@
     <Compile Include="Common\Constants.cs" />
     <Compile Include="Common\Enums.cs" />
     <Compile Include="Common\Logger.cs" />
+    <Compile Include="Common\Menu.cs" />
     <Compile Include="Core\ALPR.cs" />
+    <Compile Include="Core\BlipHandler.cs" />
     <Compile Include="Core\Driver.cs" />
     <Compile Include="Common\Funcs.cs" />
     <Compile Include="Common\Config.cs" />

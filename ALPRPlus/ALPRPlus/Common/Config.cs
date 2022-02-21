@@ -22,6 +22,14 @@ namespace Stealth.Plugins.ALPRPlus.Common
         internal static bool AutoDisableOnTrafficStops { get; set; } = true;
         internal static bool AutoDisableOnPursuits { get; set; } = true;
 
+        internal static Keys MenuKey { get; set; }
+        internal static Keys MenuKeyModifier { get; set; }
+        internal static bool EnableDriverFrontCam { get; set; } = true;
+        internal static bool EnableDriverRearCam { get; set; } = true;
+        internal static bool EnablePassengerFrontCam { get; set; } = true;
+        internal static bool EnablePassengerRearCam { get; set; } = true;
+
+
         private const int cDriverFrontAngle = 30;
         private const int cDriverRearAngle = 150;
         private const int cPassengerRearAngle = 210;
@@ -45,24 +53,23 @@ namespace Stealth.Plugins.ALPRPlus.Common
         private const int cProbabilityOfAlerts = 8;
         private const int cDefaultStolenVehicleWeight = 10;
         private const int cDefaultOwnerWantedWeight = 10;
-        private const int cDefaultOwnerLicenseSuspendedWeight = 15;
-        private const int cDefaultOwnerLicenseExpiredWeight = 15;
         private const int cDefaultUnregisteredVehicleWeight = 10;
-        private const int cDefaultRegisrationExpiredWeight = 15;
+        private const int cDefaultRegistrationExpiredWeight = 15;
         private const int cDefaultNoInsuranceWeight = 10;
         private const int cDefaultInsuranceExpiredWeight = 15;
+        private const int cDefaultUnTaxedWeight = 15;
+        private const int cDefaultDrugsMarkerWeight = 15;
         private const int cVehicleRescanBuffer = 30;
 
         internal static int SecondsBetweenAlerts { get; set; } = cSecondsBetweenAlerts;
         internal static int ProbabilityOfAlerts { get; set; } = cProbabilityOfAlerts;
         internal static int StolenVehicleWeight { get; set; } = cDefaultStolenVehicleWeight;
-        internal static int OwnerWantedWeight { get; set; } = cDefaultOwnerWantedWeight;
-        internal static int OwnerLicenseSuspendedWeight { get; set; } = cDefaultOwnerLicenseSuspendedWeight;
-        internal static int OwnerLicenseExpiredWeight { get; set; } = cDefaultOwnerLicenseExpiredWeight;
         internal static int UnregisteredVehicleWeight { get; set; } = cDefaultUnregisteredVehicleWeight;
-        internal static int RegisrationExpiredWeight { get; set; } = cDefaultRegisrationExpiredWeight;
+        internal static int RegistrationExpiredWeight { get; set; } = cDefaultRegistrationExpiredWeight;
         internal static int NoInsuranceWeight { get; set; } = cDefaultNoInsuranceWeight;
         internal static int InsuranceExpiredWeight { get; set; } = cDefaultInsuranceExpiredWeight;
+        internal static int UnTaxedWeight { get; set; } = cDefaultUnTaxedWeight;
+        internal static int DrugsMarkerWeight { get; set; } = cDefaultDrugsMarkerWeight;
 
         internal static void Init()
         {
@@ -82,6 +89,8 @@ namespace Stealth.Plugins.ALPRPlus.Common
             Logger.LogTrivial("Filling config file with default settings...");
             mCfgFile.Write(ECfgSections.SETTINGS.ToString(), ESettings.ToggleKey.ToString(), Keys.F8.ToString());
             mCfgFile.Write(ECfgSections.SETTINGS.ToString(), ESettings.ToggleKeyModifier.ToString(), Keys.None.ToString());
+            mCfgFile.Write(ECfgSections.SETTINGS.ToString(), ESettings.MenuKey.ToString(), Keys.Y.ToString());
+            mCfgFile.Write(ECfgSections.SETTINGS.ToString(), ESettings.MenuKeyModifier.ToString(), Keys.None.ToString());
             mCfgFile.Write(ECfgSections.SETTINGS.ToString(), ESettings.PlayAlertSound.ToString(), true.ToString());
             mCfgFile.Write(ECfgSections.SETTINGS.ToString(), ESettings.PlayScanSound.ToString(), true.ToString());
             mCfgFile.Write(ECfgSections.SETTINGS.ToString(), ESettings.AutoDisableOnTrafficStops.ToString(), true.ToString());
@@ -97,16 +106,20 @@ namespace Stealth.Plugins.ALPRPlus.Common
             mCfgFile.Write(ECfgSections.CAMERAS.ToString(), ECameras.PassengerFrontAngle.ToString(), cPassengerFrontAngle);
             mCfgFile.Write(ECfgSections.CAMERAS.ToString(), ECameras.VehicleRescanBuffer.ToString(), cVehicleRescanBuffer);
 
+            mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableDriverFrontCam.ToString(), true.ToString());
+            mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableDriverRearCam.ToString(), true.ToString());
+            mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerFrontCam.ToString(), true.ToString());
+            mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerFrontCam.ToString(), true.ToString());
+
             mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.SecondsBetweenAlerts.ToString(), cSecondsBetweenAlerts);
             mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.ProbabilityOfAlerts.ToString(), cProbabilityOfAlerts);
             mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.StolenVehicleWeight.ToString(), cDefaultStolenVehicleWeight);
-            mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.OwnerWantedWeight.ToString(), cDefaultOwnerWantedWeight);
-            mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.OwnerLicenseSuspendedWeight.ToString(), cDefaultOwnerLicenseSuspendedWeight);
-            mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.OwnerLicenseExpiredWeight.ToString(), cDefaultOwnerLicenseExpiredWeight);
             mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.UnregisteredVehicleWeight.ToString(), cDefaultUnregisteredVehicleWeight);
-            mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.RegisrationExpiredWeight.ToString(), cDefaultRegisrationExpiredWeight);
+            mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.RegistrationExpiredWeight.ToString(), cDefaultRegistrationExpiredWeight);
             mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.NoInsuranceWeight.ToString(), cDefaultNoInsuranceWeight);
             mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.InsuranceExpiredWeight.ToString(), cDefaultInsuranceExpiredWeight);
+            mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.UnTaxedWeight.ToString(), cDefaultUnTaxedWeight);
+            mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.DrugsMarkerWeight.ToString(), cDefaultDrugsMarkerWeight);
         }
 
         private static void ReadCfg()
@@ -115,10 +128,19 @@ namespace Stealth.Plugins.ALPRPlus.Common
 
             ToggleKey = mCfgFile.ReadEnum<Keys>(ECfgSections.SETTINGS.ToString(), ESettings.ToggleKey.ToString(), Keys.F8);
             ToggleKeyModifier = mCfgFile.ReadEnum<Keys>(ECfgSections.SETTINGS.ToString(), ESettings.ToggleKeyModifier.ToString(), Keys.None);
+            MenuKey = mCfgFile.ReadEnum<Keys>(ECfgSections.SETTINGS.ToString(), ESettings.MenuKey.ToString(), Keys.Y);
+            MenuKeyModifier = mCfgFile.ReadEnum<Keys>(ECfgSections.SETTINGS.ToString(), ESettings.MenuKeyModifier.ToString(), Keys.None);
             PlayAlertSound = mCfgFile.ReadBoolean(ECfgSections.SETTINGS.ToString(), ESettings.PlayAlertSound.ToString(), true);
             PlayScanSound = mCfgFile.ReadBoolean(ECfgSections.SETTINGS.ToString(), ESettings.PlayScanSound.ToString(), true);
             AutoDisableOnTrafficStops = mCfgFile.ReadBoolean(ECfgSections.SETTINGS.ToString(), ESettings.AutoDisableOnTrafficStops.ToString(), true);
             AutoDisableOnPursuits = mCfgFile.ReadBoolean(ECfgSections.SETTINGS.ToString(), ESettings.AutoDisableOnPursuits.ToString(), true);
+
+            EnableDriverFrontCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableDriverFrontCam.ToString(), true);
+            EnableDriverRearCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableDriverRearCam.ToString(), true);
+            EnablePassengerFrontCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerFrontCam.ToString(), true);
+            EnablePassengerFrontCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerFrontCam.ToString(), true);
+
+
             //BetaKey = mCfgFile.ReadString(ECfgSections.SETTINGS.ToString(), ESettings.BetaKey.ToString(), "YourBetaKeyHere");
 
             Logger.LogTrivial("ToggleKey = " + ToggleKey.ToString());
@@ -135,30 +157,67 @@ namespace Stealth.Plugins.ALPRPlus.Common
             SecondsBetweenAlerts = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.SecondsBetweenAlerts.ToString(), cSecondsBetweenAlerts);
             ProbabilityOfAlerts = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.ProbabilityOfAlerts.ToString(), cProbabilityOfAlerts);
             StolenVehicleWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.StolenVehicleWeight.ToString(), cDefaultStolenVehicleWeight);
-            OwnerWantedWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.OwnerWantedWeight.ToString(), cDefaultOwnerWantedWeight);
-            OwnerLicenseSuspendedWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.OwnerLicenseSuspendedWeight.ToString(), cDefaultOwnerLicenseSuspendedWeight);
-            OwnerLicenseExpiredWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.OwnerLicenseExpiredWeight.ToString(), cDefaultOwnerLicenseExpiredWeight);
             UnregisteredVehicleWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.UnregisteredVehicleWeight.ToString(), cDefaultUnregisteredVehicleWeight);
-            RegisrationExpiredWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.RegisrationExpiredWeight.ToString(), cDefaultRegisrationExpiredWeight);
+            RegistrationExpiredWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.RegistrationExpiredWeight.ToString(), cDefaultRegistrationExpiredWeight);
             NoInsuranceWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.NoInsuranceWeight.ToString(), cDefaultNoInsuranceWeight);
             InsuranceExpiredWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.InsuranceExpiredWeight.ToString(), cDefaultInsuranceExpiredWeight);
-
+            UnTaxedWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.UnTaxedWeight.ToString(), cDefaultUnTaxedWeight);
+            DrugsMarkerWeight = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.DrugsMarkerWeight.ToString(), cDefaultDrugsMarkerWeight);
             AdjustAlertWeights();
         }
 
-        private static void AdjustAlertWeights()
+        public static void SaveINI()
+        {
+            InitializationFile ini = new InitializationFile($"plugins/LSPDFR/ALPRPlus.ini");
+            if (ini.Exists())
+                ini.Delete();
+            ini.Create();
+            ini.Write("Settings", "ToggleKey", ToggleKey.ToString());
+            ini.Write("Settings", "ToggleKeyModifier", ToggleKeyModifier.ToString());
+            ini.Write("Settings", "MenuKey", MenuKey.ToString());
+            ini.Write("Settings", "MenuKeyModifier", MenuKeyModifier.ToString());
+            ini.Write("Settings", "PlayAlertSound", PlayAlertSound);
+            ini.Write("Settings", "PlayScanSound", PlayScanSound);
+            ini.Write("Settings", "AutoDisableOnTrafficStops", AutoDisableOnTrafficStops);
+            ini.Write("Settings", "AutoDisableOnPursuits", AutoDisableOnPursuits);
+
+            ini.Write("CameraToggle", "EnableDriverFrontCam", EnableDriverFrontCam);
+            ini.Write("CameraToggle", "EnableDriverRearCam", EnableDriverRearCam);
+            ini.Write("CameraToggle", "EnablePassengerFrontCam", EnablePassengerFrontCam);
+            ini.Write("CameraToggle", "EnablePassengerRearCam", EnablePassengerRearCam);
+
+            ini.Write("Cameras", "CameraDegreesFOV", CameraDegreesFOV);
+            ini.Write("Cameras", "CameraRange", CameraRange);
+            ini.Write("Cameras", "CameraMinimum", CameraMinimum);
+            ini.Write("Cameras", "DriverFrontAngle", DriverFrontAngle);
+            ini.Write("Cameras", "DriverRearAngle", DriverRearAngle);
+            ini.Write("Cameras", "PassengerRearAngle", PassengerRearAngle);
+            ini.Write("Cameras", "PassengerFrontAngle", PassengerFrontAngle);
+            ini.Write("Cameras", "VehicleRescanBuffer", VehicleRescanBuffer);
+
+            ini.Write("Alerts", "SecondsBetweenAlerts", SecondsBetweenAlerts);
+            ini.Write("Alerts", "ProbabilityOfAlerts", ProbabilityOfAlerts);
+            ini.Write("Alerts", "StolenVehicleWeight", StolenVehicleWeight);
+            ini.Write("Alerts", "UnregisteredVehicleWeight", UnregisteredVehicleWeight);
+            ini.Write("Alerts", "RegistrationExpiredWeight", RegistrationExpiredWeight);
+            ini.Write("Alerts", "NoInsuranceWeight", NoInsuranceWeight);
+            ini.Write("Alerts", "InsuranceExpiredWeight", InsuranceExpiredWeight);
+            ini.Write("Alerts", "UnTaxedWeight", UnTaxedWeight);
+            ini.Write("Alerts", "DrugsMarkerWeight", DrugsMarkerWeight);
+            Game.DisplaySubtitle("Saved configuration");
+        }
+            private static void AdjustAlertWeights()
         {
             Dictionary<EAlertType, int> mAlertWeights = new Dictionary<EAlertType, int>() {
                 {EAlertType.Stolen_Vehicle, Config.StolenVehicleWeight },
-                {EAlertType.Owner_Wanted, Config.OwnerWantedWeight},
-                {EAlertType.Owner_License_Suspended, Config.OwnerLicenseSuspendedWeight},
-                {EAlertType.Owner_License_Expired, Config.OwnerLicenseExpiredWeight},
                 {EAlertType.Unregistered_Vehicle, Config.UnregisteredVehicleWeight},
-                {EAlertType.Registration_Expired, Config.RegisrationExpiredWeight},
+                {EAlertType.Registration_Expired, Config.RegistrationExpiredWeight},
                 {EAlertType.No_Insurance, Config.NoInsuranceWeight},
-                {EAlertType.Insurance_Expired, Config.InsuranceExpiredWeight}
+                {EAlertType.Insurance_Expired, Config.InsuranceExpiredWeight},
+                {EAlertType.UnTaxed, Config.UnTaxedWeight},
+                {EAlertType.DrugsMarker, Config.DrugsMarkerWeight}
             };
-                        
+
             int mTotal = (from x in mAlertWeights select x.Value).Sum();
 
             if (mTotal != 100)
@@ -173,13 +232,12 @@ namespace Stealth.Plugins.ALPRPlus.Common
                 }
 
                 Config.StolenVehicleWeight = mAlertWeights[EAlertType.Stolen_Vehicle];
-                Config.OwnerWantedWeight = mAlertWeights[EAlertType.Owner_Wanted];
-                Config.OwnerLicenseSuspendedWeight = mAlertWeights[EAlertType.Owner_License_Suspended];
-                Config.OwnerLicenseExpiredWeight = mAlertWeights[EAlertType.Owner_License_Expired];
                 Config.UnregisteredVehicleWeight = mAlertWeights[EAlertType.Unregistered_Vehicle];
-                Config.RegisrationExpiredWeight = mAlertWeights[EAlertType.Registration_Expired];
+                Config.RegistrationExpiredWeight = mAlertWeights[EAlertType.Registration_Expired];
                 Config.NoInsuranceWeight = mAlertWeights[EAlertType.No_Insurance];
                 Config.InsuranceExpiredWeight = mAlertWeights[EAlertType.Insurance_Expired];
+                Config.UnTaxedWeight = mAlertWeights[EAlertType.UnTaxed];
+                Config.DrugsMarkerWeight = mAlertWeights[EAlertType.DrugsMarker];
             }
         }
 
@@ -222,13 +280,19 @@ namespace Stealth.Plugins.ALPRPlus.Common
 
         private enum ECfgSections
         {
-            SETTINGS, CAMERAS, ALERTS
+            SETTINGS, CAMERAS, CAMERATOGGLE, ALERTS
         }
 
         private enum ESettings
         {
-            ToggleKey, ToggleKeyModifier, PlayAlertSound, PlayScanSound, AutoDisableOnTrafficStops, AutoDisableOnPursuits, BetaKey
+            ToggleKey, ToggleKeyModifier,MenuKey, MenuKeyModifier, PlayAlertSound, PlayScanSound, AutoDisableOnTrafficStops, AutoDisableOnPursuits, BetaKey
         }
+
+        private enum ECameratoggle
+        {
+            EnableDriverFrontCam, EnableDriverRearCam, EnablePassengerFrontCam, EnablePassengerRearCam
+        }
+
 
         private enum ECameras
         {
@@ -248,12 +312,12 @@ namespace Stealth.Plugins.ALPRPlus.Common
             ProbabilityOfAlerts,
             StolenVehicleWeight,
             OwnerWantedWeight,
-            OwnerLicenseSuspendedWeight,
-            OwnerLicenseExpiredWeight,
             UnregisteredVehicleWeight,
-            RegisrationExpiredWeight,
+            RegistrationExpiredWeight,
             NoInsuranceWeight,
-            InsuranceExpiredWeight
+            InsuranceExpiredWeight,
+            UnTaxedWeight,
+            DrugsMarkerWeight
         }
     }
 }

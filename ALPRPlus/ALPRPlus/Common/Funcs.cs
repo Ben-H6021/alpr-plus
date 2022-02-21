@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Stealth.Plugins.ALPRPlus.Common
 {
@@ -55,7 +56,8 @@ namespace Stealth.Plugins.ALPRPlus.Common
                         isValid = false;
                     }
                 }
-                else {
+                else
+                {
                     DisplayNotification("Dependency Check", string.Format("~r~ERROR: ~b~{0} ~w~is missing! ~n~Initialization ~r~aborted!", pFileAlias));
                     Logger.LogTrivial(string.Format("ERROR: {0} requires at least v{1} of {2}. {2} not found; {0} cannot run.", Globals.VersionInfo.ProductName, pRequiredVersion, pFileAlias));
                     isValid = false;
@@ -71,17 +73,21 @@ namespace Stealth.Plugins.ALPRPlus.Common
 
         internal static uint DisplayNotification(string subtitle, string text)
         {
-            return DisplayNotification(Globals.VersionInfo.ProductName, subtitle, text);
+            return Game.DisplayNotification("3dtextures", "mpgroundlogo_CAM", $"~b~ANPR", subtitle, text);
         }
 
         internal static uint DisplayNotification(string title, string subtitle, string text)
         {
-            return Stealth.Common.Functions.GameFuncs.DisplayNotification(title, subtitle, text);
+            return Game.DisplayNotification("3dtextures", "mpgroundlogo_CAM", title, subtitle, text);
         }
 
         internal static bool IsTrafficPolicerRunning()
         {
             return IsLSPDFRPluginRunning("Traffic Policer", new Version(6, 14, 4, 2));
+        }
+        internal static bool IsSTPRunning()
+        {
+            return IsLSPDFRPluginRunning("STP", new Version(0, 0, 0, 0));
         }
 
         internal static bool IsLSPDFRPluginRunning(string pName, Version pMinVersion = null)
@@ -118,6 +124,25 @@ namespace Stealth.Plugins.ALPRPlus.Common
             {
                 Logger.LogTrivialDebug("Error getting plugin -- returning false");
                 return false;
+            }
+        }
+
+        internal static bool isKeyPressed(Keys key, Keys modifier = Keys.None)
+        {
+            if (key == Keys.None)
+                return false;
+            else if (modifier == Keys.None)
+                return Game.IsKeyDown(key);
+            else
+            {
+                if (modifier == Keys.Control)
+                    return Game.IsControlKeyDownRightNow && Game.IsKeyDown(key);
+                else if (modifier == Keys.Shift)
+                    return Game.IsShiftKeyDownRightNow && Game.IsKeyDown(key);
+                else if (modifier == Keys.Alt)
+                    return Game.IsAltKeyDownRightNow && Game.IsKeyDown(key);
+                else
+                    return Game.IsKeyDownRightNow(modifier) && Game.IsKeyDown(key);
             }
         }
 

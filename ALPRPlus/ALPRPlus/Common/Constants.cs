@@ -13,5 +13,6 @@ namespace Stealth.Plugins.ALPRPlus.Common
         internal const string ReqCommonVersion = "2.0.6684.38422";
         internal const string ReqRPHVersion = "0.62.1216.14731";
         internal const string ReqLSPDFRVersion = "0.3.38.5436";
+        internal const string ReqSTPVersion = "0.0.0";
     }
 }

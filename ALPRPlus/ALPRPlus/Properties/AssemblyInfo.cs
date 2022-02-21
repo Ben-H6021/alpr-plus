@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ALPR+")]
+[assembly: AssemblyTitle("ALPR+(ANPRCam)")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Stealth22")]
+[assembly: AssemblyCompany("Stealth22+BenH")]
 [assembly: AssemblyProduct("ALPR+")]
-[assembly: AssemblyCopyright("Copyright ©  2016 Stealth22")]
+[assembly: AssemblyCopyright("Copyright ©  2022 Stealth22+BenH")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

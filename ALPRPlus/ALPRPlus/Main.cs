@@ -50,10 +50,10 @@ namespace Stealth.Plugins.ALPRPlus
                 GameFiber.StartNew(delegate
                 {
                     GameFiber.Sleep(3000);
-                    Funcs.DisplayNotification("~b~Developed By Stealth22", String.Format("~b~{0} v{1} ~w~has been ~g~loaded!", Globals.VersionInfo.ProductName, Globals.VersionInfo.FileVersion));
+                    Funcs.DisplayNotification("~b~Re-Designed By BenH", String.Format("~b~{0} v{1} ~w~has been ~g~loaded!", "ANPRCam", Globals.VersionInfo.FileVersion));
                     Funcs.CheckForUpdates();
                 });
-
+                Menu.Initialize();
                 Driver mDriver = new Driver();
                 GameFiber.StartNew(new ThreadStart(mDriver.Launch));
                 GameFiber.StartNew(new ThreadStart(mDriver.ListenForToggleKey));

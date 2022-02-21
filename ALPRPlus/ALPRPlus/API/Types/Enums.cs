@@ -14,12 +14,13 @@ namespace Stealth.Plugins.ALPRPlus.API.Types.Enums
         Null,
         Stolen_Vehicle,
         Owner_Wanted,
-        Owner_License_Suspended,
-        Owner_License_Expired,
         Unregistered_Vehicle,
         Registration_Expired,
         No_Insurance,
-        Insurance_Expired
+        Insurance_Expired,
+        UnTaxed,
+        DrugsMarker
+
     }
 
     public enum ECamera

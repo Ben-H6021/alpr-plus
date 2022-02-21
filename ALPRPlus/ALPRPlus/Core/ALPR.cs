@@ -2,6 +2,7 @@
 using LSPD_First_Response.Engine.Scripting.Entities;
 using LSPD_First_Response.Mod.API;
 using Rage;
+using StopThePed;
 using Stealth.Common.Extensions;
 using Stealth.Common.Models;
 using Stealth.Plugins.ALPRPlus.API.Types;
@@ -11,6 +12,7 @@ using Stealth.Plugins.ALPRPlus.Common.Enums;
 using Stealth.Plugins.ALPRPlus.Extensions;
 using Stealth.Plugins.ALPRPlus.Mods;
 using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +24,8 @@ namespace Stealth.Plugins.ALPRPlus.Core
     {
         private Dictionary<Vehicle, uint> mRecentlyScanned = new Dictionary<Vehicle, uint>();
         private Random mRand = null;
+        private static readonly Random rand = new Random();
+
 
         internal ALPR()
         {
@@ -35,10 +39,12 @@ namespace Stealth.Plugins.ALPRPlus.Core
                 if (Globals.PlayerVehicle.IsPoliceVehicle && IsActive(Globals.PlayerVehicle))
                 {
                     List<Vehicle> mVehicles = World.EnumerateVehicles().ToList();
-                    mVehicles = (from x in mVehicles where x.Exists() && !IsVehicleBlacklisted(x) &&
-                                 x.DistanceTo(Globals.PlayerPed.Position) <= Config.CameraRange &&
-                                 x.DistanceTo(Globals.PlayerPed.Position) >= Config.CameraMinimum
-                                 orderby x.DistanceTo(Globals.PlayerPed.Position) select x).ToList();
+                    mVehicles = (from x in mVehicles
+                                 where x.Exists() && !IsVehicleBlacklisted(x) &&
+             x.DistanceTo(Globals.PlayerPed.Position) <= Config.CameraRange &&
+             x.DistanceTo(Globals.PlayerPed.Position) >= Config.CameraMinimum
+                                 orderby x.DistanceTo(Globals.PlayerPed.Position)
+                                 select x).ToList();
 
                     foreach (Vehicle veh in mVehicles)
                     {
@@ -171,41 +177,24 @@ namespace Stealth.Plugins.ALPRPlus.Core
         {
             if (veh.Exists() && (veh.HasDriver && veh.Driver.Exists()))
             {
-                Persona p = Functions.GetPersonaForPed(veh.Driver);
 
                 if (veh.IsStolen)
                 {
                     return EAlertType.Stolen_Vehicle;
                 }
-
-                if (p.Wanted)
+                if (Funcs.IsSTPRunning())
                 {
-                    return EAlertType.Owner_Wanted;
-                }
+                    StopThePed.API.STPVehicleStatus mRegistration = StopThePed.API.Functions.getVehicleRegistrationStatus(veh);
+                    StopThePed.API.STPVehicleStatus mInsurance = StopThePed.API.Functions.getVehicleInsuranceStatus(veh);
 
-                if (p.LicenseState == ELicenseState.Suspended)
-                {
-                    return EAlertType.Owner_License_Suspended;
-                }
-
-                if (p.LicenseState == ELicenseState.Expired)
-                {
-                    return EAlertType.Owner_License_Expired;
-                }
-
-                if (Funcs.IsTrafficPolicerRunning())
-                {
-                    EVehicleStatus mRegistration = TrafficPolicer.GetVehicleRegistrationStatus(veh);
-                    EVehicleStatus mInsurance = TrafficPolicer.GetVehicleInsuranceStatus(veh);
-
-                    if (mRegistration == EVehicleStatus.Expired)
+                    if (mRegistration == StopThePed.API.STPVehicleStatus.Expired)
                         return EAlertType.Registration_Expired;
-                    else if (mRegistration == EVehicleStatus.None)
+                    else if (mRegistration == StopThePed.API.STPVehicleStatus.None)
                         return EAlertType.Unregistered_Vehicle;
 
-                    if (mInsurance == EVehicleStatus.Expired)
+                    if (mInsurance == StopThePed.API.STPVehicleStatus.Expired)
                         return EAlertType.Insurance_Expired;
-                    else if (mInsurance == EVehicleStatus.None)
+                    else if (mInsurance == StopThePed.API.STPVehicleStatus.None)
                         return EAlertType.No_Insurance;
                 }
             }
@@ -216,10 +205,10 @@ namespace Stealth.Plugins.ALPRPlus.Core
                     return EAlertType.Stolen_Vehicle;
                 }
 
-                if (Funcs.IsTrafficPolicerRunning())
+                if (Funcs.IsSTPRunning())
                 {
-                    EVehicleStatus mRegistration = TrafficPolicer.GetVehicleRegistrationStatus(veh);
-                    EVehicleStatus mInsurance = TrafficPolicer.GetVehicleInsuranceStatus(veh);
+                    EVehicleStatus mRegistration = (EVehicleStatus)StopThePed.API.Functions.getVehicleRegistrationStatus(veh);
+                    EVehicleStatus mInsurance = (EVehicleStatus)StopThePed.API.Functions.getVehicleInsuranceStatus(veh);
 
                     if (mRegistration == EVehicleStatus.Expired)
                         return EAlertType.Registration_Expired;
@@ -248,13 +237,12 @@ namespace Stealth.Plugins.ALPRPlus.Core
 
             Dictionary<EAlertType, int> mAlertWeights = new Dictionary<EAlertType, int>() {
                 { EAlertType.Stolen_Vehicle, Config.StolenVehicleWeight },
-                { EAlertType.Owner_Wanted, Config.OwnerWantedWeight },
-                { EAlertType.Owner_License_Suspended, Config.OwnerLicenseSuspendedWeight },
-                { EAlertType.Owner_License_Expired, Config.OwnerLicenseExpiredWeight },
                 { EAlertType.Unregistered_Vehicle, Config.UnregisteredVehicleWeight },
-                { EAlertType.Registration_Expired, Config.RegisrationExpiredWeight },
+                { EAlertType.Registration_Expired, Config.RegistrationExpiredWeight },
                 { EAlertType.No_Insurance, Config.NoInsuranceWeight },
-                { EAlertType.Insurance_Expired, Config.InsuranceExpiredWeight }
+                { EAlertType.Insurance_Expired, Config.InsuranceExpiredWeight },
+                { EAlertType.UnTaxed, Config.UnTaxedWeight },
+                { EAlertType.DrugsMarker, Config.DrugsMarkerWeight }
             };
 
             List<EAlertType> keys = (from x in mAlertWeights select x.Key).ToList();
@@ -285,18 +273,6 @@ namespace Stealth.Plugins.ALPRPlus.Core
                     r = CreateStolenVehResult(veh);
                     break;
 
-                case EAlertType.Owner_Wanted:
-                    r = CreateWantedResult(veh);
-                    break;
-
-                case EAlertType.Owner_License_Suspended:
-                    r = CreateLicSuspendedResult(veh);
-                    break;
-
-                case EAlertType.Owner_License_Expired:
-                    r = CreateLicExpiredResult(veh);
-                    break;
-
                 case EAlertType.Registration_Expired:
                     r = CreateRegExpiredResult(veh);
                     break;
@@ -312,6 +288,12 @@ namespace Stealth.Plugins.ALPRPlus.Core
                 case EAlertType.Insurance_Expired:
                     r = CreateInsExpiredResult(veh);
                     break;
+                case EAlertType.UnTaxed:
+                    r = CreateUntaxedResult(veh);
+                    break;
+                case EAlertType.DrugsMarker:
+                    r = CreateDrugsMarkerResult(veh);
+                    break;
             }
 
             API.Functions.RaiseALPRFlagGenerated(veh, new ALPREventArgs(r, cam));
@@ -322,64 +304,22 @@ namespace Stealth.Plugins.ALPRPlus.Core
         {
             API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.Stolen_Vehicle);
             string mRegisteredOwner = "";
-
-            r.Persona = CreatePersona(veh, ELicenseState.Suspended, true, out mRegisteredOwner, false, false);
             r.RegisteredOwner = mRegisteredOwner;
-
             veh.IsStolen = true;
-
-            return r;
-        }
-
-        private API.ALPRScanResult CreateWantedResult(Vehicle veh)
-        {
-            API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.Owner_Wanted);
-            string mRegisteredOwner = "";
-
-            r.Persona = CreatePersona(veh, ELicenseState.Valid, true, out mRegisteredOwner);
-            r.RegisteredOwner = mRegisteredOwner;
-
-            return r;
-        }
-
-        private API.ALPRScanResult CreateLicSuspendedResult(Vehicle veh)
-        {
-            API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.Owner_License_Suspended);
-            string mRegisteredOwner = "";
-
-            r.Persona = CreatePersona(veh, ELicenseState.Suspended, false, out mRegisteredOwner);
-            r.RegisteredOwner = mRegisteredOwner;
-
-            return r;
-        }
-
-        private API.ALPRScanResult CreateLicExpiredResult(Vehicle veh)
-        {
-            API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.Owner_License_Expired);
-            string mRegisteredOwner = "";
-
-            r.Persona = CreatePersona(veh, ELicenseState.Expired, false, out mRegisteredOwner, true);
-            r.RegisteredOwner = mRegisteredOwner;
-
+            BlipHandler.Clear();
+            BlipHandler.Attach(veh, Color.Red);
             return r;
         }
 
         private API.ALPRScanResult CreateRegNotValidResult(Vehicle veh)
         {
             API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.Unregistered_Vehicle);
-            string mRegisteredOwner = "";
-
-            r.Persona = CreatePersona(veh, ELicenseState.Valid, false, out mRegisteredOwner);
             r.RegisteredOwner = "UNREGISTERED";
-
             Functions.SetVehicleOwnerName(veh, "UNREGISTERED");
-
-            if (Funcs.IsTrafficPolicerRunning())
-            {
-                TrafficPolicer.SetVehicleRegistrationStatus(veh, EVehicleStatus.None);
-                TrafficPolicer.SetVehicleInsuranceStatus(veh, EVehicleStatus.None);
-            }
-
+            BlipHandler.Clear();
+            BlipHandler.Attach(veh, Color.Red);
+            StopThePed.API.Functions.setVehicleRegistrationStatus(veh, StopThePed.API.STPVehicleStatus.None);
+            StopThePed.API.Functions.setVehicleInsuranceStatus(veh, StopThePed.API.STPVehicleStatus.None);
             return r;
         }
 
@@ -387,16 +327,11 @@ namespace Stealth.Plugins.ALPRPlus.Core
         {
             API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.Registration_Expired);
             string mRegisteredOwner = "";
-
-            r.Persona = CreatePersona(veh, ELicenseState.Valid, false, out mRegisteredOwner);
             r.RegisteredOwner = mRegisteredOwner;
-
-            if (Funcs.IsTrafficPolicerRunning())
-            {
-                TrafficPolicer.SetVehicleRegistrationStatus(veh, EVehicleStatus.Expired);
-                TrafficPolicer.SetVehicleInsuranceStatus(veh, EVehicleStatus.Valid);
-            }
-
+            BlipHandler.Clear();
+            BlipHandler.Attach(veh, Color.Yellow);
+            StopThePed.API.Functions.setVehicleRegistrationStatus(veh, StopThePed.API.STPVehicleStatus.Expired);
+            StopThePed.API.Functions.setVehicleInsuranceStatus(veh, StopThePed.API.STPVehicleStatus.Expired);
             return r;
         }
 
@@ -404,16 +339,11 @@ namespace Stealth.Plugins.ALPRPlus.Core
         {
             API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.No_Insurance);
             string mRegisteredOwner = "";
-
-            r.Persona = CreatePersona(veh, ELicenseState.Valid, false, out mRegisteredOwner);
             r.RegisteredOwner = mRegisteredOwner;
-
-            if (Funcs.IsTrafficPolicerRunning())
-            {
-                TrafficPolicer.SetVehicleRegistrationStatus(veh, EVehicleStatus.Valid);
-                TrafficPolicer.SetVehicleInsuranceStatus(veh, EVehicleStatus.None);
-            }
-
+            BlipHandler.Clear();
+            BlipHandler.Attach(veh, Color.Red);
+            StopThePed.API.Functions.setVehicleRegistrationStatus(veh, StopThePed.API.STPVehicleStatus.None);
+            StopThePed.API.Functions.setVehicleInsuranceStatus(veh, StopThePed.API.STPVehicleStatus.None);
             return r;
         }
 
@@ -421,85 +351,44 @@ namespace Stealth.Plugins.ALPRPlus.Core
         {
             API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.Insurance_Expired);
             string mRegisteredOwner = "";
-
-            r.Persona = CreatePersona(veh, ELicenseState.Valid, false, out mRegisteredOwner);
             r.RegisteredOwner = mRegisteredOwner;
-
-            if (Funcs.IsTrafficPolicerRunning())
-            {
-                TrafficPolicer.SetVehicleRegistrationStatus(veh, EVehicleStatus.Valid);
-                TrafficPolicer.SetVehicleInsuranceStatus(veh, EVehicleStatus.Expired);
-            }
-
+            BlipHandler.Clear();
+            BlipHandler.Attach(veh, Color.Yellow);
+            StopThePed.API.Functions.setVehicleRegistrationStatus(veh, StopThePed.API.STPVehicleStatus.Expired);
+            StopThePed.API.Functions.setVehicleInsuranceStatus(veh, StopThePed.API.STPVehicleStatus.Expired);
             return r;
         }
 
-        private Persona CreatePersona(Vehicle veh, ELicenseState lic, bool wanted, out string ownerName, bool couldBeCop = false, bool driverOwnsCar = true)
+        private API.ALPRScanResult CreateUntaxedResult(Vehicle veh)
         {
-            if (veh.Exists() && veh.HasDriver && veh.Driver.Exists())
+            API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.UnTaxed);
+            string mRegisteredOwner = "";
+            r.RegisteredOwner = mRegisteredOwner;
+            StopThePed.API.Functions.setVehicleRegistrationStatus(veh, StopThePed.API.STPVehicleStatus.Expired);
+            StopThePed.API.Functions.setVehicleInsuranceStatus(veh, StopThePed.API.STPVehicleStatus.Expired);
+            BlipHandler.Clear();
+            BlipHandler.Attach(veh, Color.Red);
+            return r;
+        }
+        private API.ALPRScanResult CreateDrugsMarkerResult(Vehicle veh)
+        {
+            API.ALPRScanResult r = new API.ALPRScanResult(veh, EAlertType.DrugsMarker);
+            string mRegisteredOwner = "";
+            r.RegisteredOwner = mRegisteredOwner;
+            StopThePed.API.Functions.injectVehicleSearchItems(veh);
+            StopThePed.API.Functions.injectPedSearchItems(veh.Driver);
+            BlipHandler.Clear();
+            BlipHandler.Attach(veh, Color.Blue);
+            if (rand.Next(1, 5) == 4)
             {
-                Logger.LogTrivialDebug(String.Format("Creating Persona for driver of {0} (Plate# {1})", veh.Model.Name, veh.LicensePlate));
-
-                Persona oldP = Functions.GetPersonaForPed(veh.Driver);
-
-                string mFullName = "";
-                Gender mGender;
-
-                if (oldP != null)
-                {
-                    mFullName = oldP.FullName;
-                    mGender = oldP.Gender;
-
-                    Logger.LogTrivialDebug(String.Format("Using name({0}) and gender ({1}) from old Persona...", mFullName, mGender.ToString()));
-                }
-                else
-                {
-                    mFullName = Persona.GetRandomFullName();
-
-                    if (veh.Driver.IsFemale)
-                        mGender = Gender.Female;
-                    else
-                        mGender = Gender.Male;
-
-                    Logger.LogTrivialDebug(String.Format("Old persona is null; using new name ({0}); ped appears to be {1}", mFullName, mGender.ToString()));
-                }
-
-                string[] nameParts = mFullName.Split(' ');
-                Logger.LogTrivialDebug(String.Format("First name: {0}, Last name: {1}", nameParts[0], nameParts[1]));
-
-                bool isCop = false;
-                if (couldBeCop == true)
-                {
-                    if (Globals.Random.Next(100) < 20)
-                        isCop = true;
-                }
-                Logger.LogTrivialDebug(String.Format("isCop: {0}", isCop.ToString()));
-
-                if (driverOwnsCar)
-                {
-                    ownerName = mFullName;
-                    Logger.LogTrivialDebug(String.Format("Driver owns vehicle...using {0} as registered owner", ownerName));
-                }
-                else
-                {
-                    ownerName = Persona.GetRandomFullName();
-                    Logger.LogTrivialDebug(String.Format("Driver does NOT own vehicle...using new name ({0}) as registered owner", ownerName));
-                }
-
-                Logger.LogTrivialDebug("Creating new Persona object");
-                Logger.LogTrivialDebug(String.Format("Gender: {0}, Birthday: {1}, Citations: {2}, Forename: {3}, Surname: {4}, License: {5}, Stopped: {6}, Wanted: {7}, IsCop: {8}",
-                    mGender.ToString(), oldP.BirthDay.ToString(), oldP.Citations, nameParts[0], nameParts[1], lic.ToString(), oldP.TimesStopped, wanted.ToString(), isCop.ToString()));
-
-                Persona p = new Persona(veh.Driver, mGender, oldP.BirthDay, oldP.Citations, nameParts[0], nameParts[1], lic, oldP.TimesStopped, wanted, false, isCop);
-                Functions.SetPersonaForPed(veh.Driver, p);
-                Functions.SetVehicleOwnerName(veh, ownerName);
-                return p;
+                StopThePed.API.Functions.setPedUnderDrugsInfluence(veh.Driver, true);
             }
-            else
+            if (rand.Next(1, 5) == 2)
             {
-                ownerName = "";
-                return null;
+                StopThePed.API.Functions.setVehicleRegistrationStatus(veh, StopThePed.API.STPVehicleStatus.None);
+                StopThePed.API.Functions.setVehicleInsuranceStatus(veh, StopThePed.API.STPVehicleStatus.None);
             }
+            return r;
         }
 
         private void DisplayAlert(Vehicle veh, ECamera cam, API.ALPRScanResult r)
@@ -537,35 +426,25 @@ namespace Stealth.Plugins.ALPRPlus.Core
                 switch (r.AlertType)
                 {
                     case EAlertType.Stolen_Vehicle:
-                        subtitle = "~r~Stolen Vehicle";
+                        subtitle = "~r~STOLEN VEHCILE";
                         break;
-
-                    case EAlertType.Owner_Wanted:
-                        subtitle = "~r~Outstanding Warrant";
-                        break;
-
-                    case EAlertType.Owner_License_Suspended:
-                        subtitle = "~r~License Suspended";
-                        break;
-
-                    case EAlertType.Owner_License_Expired:
-                        subtitle = "~y~License Expired";
-                        break;
-
                     case EAlertType.Registration_Expired:
-                        subtitle = "~y~Registration Expired";
+                        subtitle = "~y~MOT Expired";
                         break;
-
                     case EAlertType.Unregistered_Vehicle:
-                        subtitle = "~r~Unregistered Vehicle";
+                        subtitle = "~r~No MOT Held";
                         break;
-
                     case EAlertType.No_Insurance:
-                        subtitle = "~r~No Insurance";
+                        subtitle = "~r~No Insurance Held";
                         break;
-
                     case EAlertType.Insurance_Expired:
                         subtitle = "~y~Insurance Expired";
+                        break;
+                    case EAlertType.UnTaxed:
+                        subtitle = "~r~No Tax Held";
+                        break;
+                    case EAlertType.DrugsMarker:
+                        subtitle = "~r~Drugs Marker";
                         break;
                 }
 
@@ -586,12 +465,10 @@ namespace Stealth.Plugins.ALPRPlus.Core
                 if (mColorName != "")
                     mColorName = mColorName + " ";
 
-                string mTitle = String.Format("ALPR+ [{0}]", GetCameraName(cam));
+                string mTitle = String.Format("ANPR Hit[{0}]", GetCameraName(cam));
                 string mVehModel = String.Format("{0}{1}", veh.Model.Name.Substring(0, 1).ToUpper(), veh.Model.Name.Substring(1).ToLower());
                 string mText = String.Format("Plate: ~b~{0} ~n~~w~{1}{2}", veh.LicensePlate, mColorName, mVehModel);
-
                 Funcs.DisplayNotification(mTitle, subtitle, mText);
-
                 if (Config.PlayAlertSound)
                 {
                     Audio.PlaySound(Audio.ESounds.TimerStop);
@@ -621,25 +498,34 @@ namespace Stealth.Plugins.ALPRPlus.Core
                 {
                     return ECamera.Null;
                 }
-
-                if (IsVehicleInCameraFOV(veh, Config.PassengerFrontAngle))
+                if (Config.EnablePassengerFrontCam)
                 {
-                    return ECamera.Passenger_Front;
+                    if (IsVehicleInCameraFOV(veh, Config.PassengerFrontAngle))
+                    {
+                        return ECamera.Passenger_Front;
+                    }
                 }
 
-                if (IsVehicleInCameraFOV(veh, Config.PassengerRearAngle))
+                if (Config.EnablePassengerRearCam)
                 {
-                    return ECamera.Passenger_Rear;
+                    if (IsVehicleInCameraFOV(veh, Config.PassengerRearAngle))
+                    {
+                        return ECamera.Passenger_Rear;
+                    }
                 }
-
-                if (IsVehicleInCameraFOV(veh, Config.DriverFrontAngle))
+                if (Config.EnableDriverFrontCam)
                 {
-                    return ECamera.Driver_Front;
+                    if (IsVehicleInCameraFOV(veh, Config.DriverFrontAngle))
+                    {
+                        return ECamera.Driver_Front;
+                    }
                 }
-
-                if (IsVehicleInCameraFOV(veh, Config.DriverRearAngle))
+                if (Config.EnableDriverRearCam)
                 {
-                    return ECamera.Driver_Rear;
+                    if (IsVehicleInCameraFOV(veh, Config.DriverRearAngle))
+                    {
+                        return ECamera.Driver_Rear;
+                    }
                 }
 
                 return ECamera.Null;
@@ -918,7 +804,8 @@ namespace Stealth.Plugins.ALPRPlus.Core
             "trailerlogs",
             "tr2",
             "docktrailer",
-            "tanker"
+            "tanker",
+            "AAVAN"
         };
     }
 }
