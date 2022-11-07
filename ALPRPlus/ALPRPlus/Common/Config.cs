@@ -28,12 +28,16 @@ namespace Stealth.Plugins.ALPRPlus.Common
         internal static bool EnableDriverRearCam { get; set; } = true;
         internal static bool EnablePassengerFrontCam { get; set; } = true;
         internal static bool EnablePassengerRearCam { get; set; } = true;
+        internal static bool EnableMobileANPRCam { get; set; } = true;
+        internal static bool EnableMobileANPRCam2 { get; set; } = true;
 
 
-        private const int cDriverFrontAngle = 30;
-        private const int cDriverRearAngle = 150;
-        private const int cPassengerRearAngle = 210;
-        private const int cPassengerFrontAngle = 330;
+        private const int cDriverFrontAngle = 150;
+        private const int cDriverRearAngle = 210;
+        private const int cPassengerRearAngle = 330;
+        private const int cPassengerFrontAngle = 30;
+        private const int cMobileANPRAngle = 330;
+        private const int cMobileANPRAngle2 = 150;
 
         private const int cCameraDegreesFOV = 50;
         private const float cCameraRange = 20f;
@@ -46,13 +50,14 @@ namespace Stealth.Plugins.ALPRPlus.Common
         internal static int DriverRearAngle { get; set; } = cDriverRearAngle;
         internal static int PassengerRearAngle { get; set; } = cPassengerRearAngle;
         internal static int PassengerFrontAngle { get; set; } = cPassengerFrontAngle;
+        internal static int MobileANPRAngle { get; set; } = cMobileANPRAngle;
+        internal static int MobileANPRAngle2 { get; set; } = cMobileANPRAngle2;
         internal static int VehicleRescanBuffer { get; set; } = cVehicleRescanBuffer;
         internal static int VehicleRescanBufferInMilliseconds { get { return VehicleRescanBuffer * 1000; } }
 
         private const int cSecondsBetweenAlerts = 120;
         private const int cProbabilityOfAlerts = 8;
         private const int cDefaultStolenVehicleWeight = 10;
-        private const int cDefaultOwnerWantedWeight = 10;
         private const int cDefaultUnregisteredVehicleWeight = 10;
         private const int cDefaultRegistrationExpiredWeight = 15;
         private const int cDefaultNoInsuranceWeight = 10;
@@ -104,12 +109,16 @@ namespace Stealth.Plugins.ALPRPlus.Common
             mCfgFile.Write(ECfgSections.CAMERAS.ToString(), ECameras.DriverRearAngle.ToString(), cDriverRearAngle);
             mCfgFile.Write(ECfgSections.CAMERAS.ToString(), ECameras.PassengerRearAngle.ToString(), cPassengerRearAngle);
             mCfgFile.Write(ECfgSections.CAMERAS.ToString(), ECameras.PassengerFrontAngle.ToString(), cPassengerFrontAngle);
+            mCfgFile.Write(ECfgSections.CAMERAS.ToString(), ECameras.MobileANPRAngle.ToString(), cMobileANPRAngle);
+            mCfgFile.Write(ECfgSections.CAMERAS.ToString(), ECameras.MobileANPRAngle2.ToString(), cMobileANPRAngle2);
             mCfgFile.Write(ECfgSections.CAMERAS.ToString(), ECameras.VehicleRescanBuffer.ToString(), cVehicleRescanBuffer);
 
             mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableDriverFrontCam.ToString(), true.ToString());
             mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableDriverRearCam.ToString(), true.ToString());
             mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerFrontCam.ToString(), true.ToString());
-            mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerFrontCam.ToString(), true.ToString());
+            mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerRearCam.ToString(), true.ToString());
+            mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableMobileANPRCam.ToString(), true.ToString());
+            mCfgFile.Write(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableMobileANPRCam2.ToString(), true.ToString());
 
             mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.SecondsBetweenAlerts.ToString(), cSecondsBetweenAlerts);
             mCfgFile.Write(ECfgSections.ALERTS.ToString(), EAlerts.ProbabilityOfAlerts.ToString(), cProbabilityOfAlerts);
@@ -138,9 +147,9 @@ namespace Stealth.Plugins.ALPRPlus.Common
             EnableDriverFrontCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableDriverFrontCam.ToString(), true);
             EnableDriverRearCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableDriverRearCam.ToString(), true);
             EnablePassengerFrontCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerFrontCam.ToString(), true);
-            EnablePassengerFrontCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerFrontCam.ToString(), true);
-
-
+            EnablePassengerRearCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnablePassengerRearCam.ToString(), true);
+            EnableMobileANPRCam = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableMobileANPRCam.ToString(), true);
+            EnableMobileANPRCam2 = mCfgFile.ReadBoolean(ECfgSections.CAMERATOGGLE.ToString(), ECameratoggle.EnableMobileANPRCam2.ToString(), true);
             //BetaKey = mCfgFile.ReadString(ECfgSections.SETTINGS.ToString(), ESettings.BetaKey.ToString(), "YourBetaKeyHere");
 
             Logger.LogTrivial("ToggleKey = " + ToggleKey.ToString());
@@ -152,6 +161,7 @@ namespace Stealth.Plugins.ALPRPlus.Common
             DriverRearAngle = mCfgFile.ReadInt32(ECfgSections.CAMERAS.ToString(), ECameras.DriverRearAngle.ToString(), cDriverRearAngle);
             PassengerRearAngle = mCfgFile.ReadInt32(ECfgSections.CAMERAS.ToString(), ECameras.PassengerRearAngle.ToString(), cPassengerRearAngle);
             PassengerFrontAngle = mCfgFile.ReadInt32(ECfgSections.CAMERAS.ToString(), ECameras.PassengerFrontAngle.ToString(), cPassengerFrontAngle);
+            MobileANPRAngle = mCfgFile.ReadInt32(ECfgSections.CAMERAS.ToString(), ECameras.MobileANPRAngle.ToString(), cMobileANPRAngle);
             VehicleRescanBuffer = mCfgFile.ReadInt32(ECfgSections.CAMERAS.ToString(), ECameras.VehicleRescanBuffer.ToString(), cVehicleRescanBuffer);
 
             SecondsBetweenAlerts = mCfgFile.ReadInt32(ECfgSections.ALERTS.ToString(), EAlerts.SecondsBetweenAlerts.ToString(), cSecondsBetweenAlerts);
@@ -185,6 +195,8 @@ namespace Stealth.Plugins.ALPRPlus.Common
             ini.Write("CameraToggle", "EnableDriverRearCam", EnableDriverRearCam);
             ini.Write("CameraToggle", "EnablePassengerFrontCam", EnablePassengerFrontCam);
             ini.Write("CameraToggle", "EnablePassengerRearCam", EnablePassengerRearCam);
+            ini.Write("CameraToggle", "EnableMobileANPRCam", EnableMobileANPRCam);
+            ini.Write("CameraToggle", "EnableMobileANPRCam2", EnableMobileANPRCam2);
 
             ini.Write("Cameras", "CameraDegreesFOV", CameraDegreesFOV);
             ini.Write("Cameras", "CameraRange", CameraRange);
@@ -193,6 +205,8 @@ namespace Stealth.Plugins.ALPRPlus.Common
             ini.Write("Cameras", "DriverRearAngle", DriverRearAngle);
             ini.Write("Cameras", "PassengerRearAngle", PassengerRearAngle);
             ini.Write("Cameras", "PassengerFrontAngle", PassengerFrontAngle);
+            ini.Write("Cameras", "MobileANPRAngle", MobileANPRAngle);
+            ini.Write("Cameras", "MobileANPRAngle2", MobileANPRAngle2);
             ini.Write("Cameras", "VehicleRescanBuffer", VehicleRescanBuffer);
 
             ini.Write("Alerts", "SecondsBetweenAlerts", SecondsBetweenAlerts);
@@ -290,7 +304,7 @@ namespace Stealth.Plugins.ALPRPlus.Common
 
         private enum ECameratoggle
         {
-            EnableDriverFrontCam, EnableDriverRearCam, EnablePassengerFrontCam, EnablePassengerRearCam
+            EnableDriverFrontCam, EnableDriverRearCam, EnablePassengerFrontCam, EnablePassengerRearCam, EnableMobileANPRCam, EnableMobileANPRCam2
         }
 
 
@@ -303,6 +317,8 @@ namespace Stealth.Plugins.ALPRPlus.Common
             DriverRearAngle,
             PassengerRearAngle,
             PassengerFrontAngle,
+            MobileANPRAngle,
+            MobileANPRAngle2,
             VehicleRescanBuffer
         }
 

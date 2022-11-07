@@ -77,7 +77,7 @@
       <HintPath>..\..\DLLs\LSPD First Response.dll</HintPath>
     </Reference>
     <Reference Include="RAGENativeUI">
-      <HintPath>..\..\..\Immersive-Plugins-Team\Dependencies\RAGENativeUI.dll</HintPath>
+      <HintPath>F:\Grand Theft Auto V\RAGENativeUI.dll</HintPath>
     </Reference>
     <Reference Include="RagePluginHookSDK">
       <HintPath>..\..\DLLs\RagePluginHookSDK.dll</HintPath>
@@ -86,7 +86,7 @@
       <HintPath>..\..\DLLs\Stealth.Common.dll</HintPath>
     </Reference>
     <Reference Include="StopThePed">
-      <HintPath>S:\Grand Theft Auto V\Plugins\LSPDFR\StopThePed.dll</HintPath>
+      <HintPath>F:\Grand Theft Auto V\plugins\LSPDFR\StopThePed.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

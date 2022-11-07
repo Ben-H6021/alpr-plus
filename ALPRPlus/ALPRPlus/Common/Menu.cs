@@ -21,6 +21,8 @@ namespace Stealth.Plugins.ALPRPlus.Common
         private static UIMenuListItem EnableDriverRearListItem;
         private static UIMenuListItem EnablePassengerFrontListItem;
         private static UIMenuListItem EnablePassengerRearListItem;
+        private static UIMenuListItem EnableMobileANPRListItem;
+        private static UIMenuListItem EnableMobileANPR2ListItem;
         private static UIMenuItem SaveMenuItem;
         internal static void Initialize()
         {
@@ -31,6 +33,8 @@ namespace Stealth.Plugins.ALPRPlus.Common
             CameraToggle.AddItem(EnableDriverRearListItem = new UIMenuListItem("Driver Rear", "Toggle Driver Rear Camera."));
             CameraToggle.AddItem(EnablePassengerFrontListItem = new UIMenuListItem("Passenger Front", "Toggle Passenger Front Camera."));
             CameraToggle.AddItem(EnablePassengerRearListItem = new UIMenuListItem("Passenger Rear", "Toggle Passenger Rear Camera."));
+            CameraToggle.AddItem((UIMenuItem)(Menu.EnableMobileANPRListItem = new UIMenuListItem("Mobile ANPR Cam", "Toggle 1st Mobile ANPR Camera.")));
+            CameraToggle.AddItem((UIMenuItem)(Menu.EnableMobileANPR2ListItem = new UIMenuListItem("Mobile ANPR Cam2", "Toggle 2nd Mobile ANPR Camera.")));
             CameraToggle.AddItem(SaveMenuItem = new UIMenuItem("Save Configuration","Save Configuration to INI"));
             CameraToggle.OnItemSelect += OnOnItemSelect;
             EnableDriverFrontListItem.Collection = GetBooleanValues();
@@ -41,6 +45,7 @@ namespace Stealth.Plugins.ALPRPlus.Common
             EnableDriverRearListItem.OnListChanged += OnBooleanListChanged;
             EnablePassengerFrontListItem.OnListChanged += OnBooleanListChanged;
             EnablePassengerRearListItem.OnListChanged += OnBooleanListChanged;
+            EnableMobileANPR2ListItem.OnListChanged += OnBooleanListChanged;
             CameraToggle.MouseControlsEnabled = true;
             CameraToggle.AllowCameraMovement = false;
             SetSelectedSettings();
@@ -74,6 +79,8 @@ namespace Stealth.Plugins.ALPRPlus.Common
             EnableDriverRearListItem.Index = Config.EnableDriverRearCam ? 0 : 1;
             EnablePassengerFrontListItem.Index = Config.EnablePassengerFrontCam ? 0 : 1;
             EnablePassengerRearListItem.Index = Config.EnablePassengerRearCam ? 0 : 1;
+            EnableMobileANPRListItem.Index = Config.EnableMobileANPRCam ? 0 : 1;
+            EnableMobileANPR2ListItem.Index = Config.EnableMobileANPRCam2 ? 0 : 1;
         }
         private static void OnBooleanListChanged(UIMenuItem sender, int newIndex)
         {
@@ -85,6 +92,16 @@ namespace Stealth.Plugins.ALPRPlus.Common
                 Config.EnablePassengerFrontCam = (bool)EnablePassengerFrontListItem.SelectedValue;
             else if (sender == EnablePassengerRearListItem)
                 Config.EnablePassengerRearCam = (bool)EnablePassengerRearListItem.SelectedValue;
+            else if (sender == Menu.EnableMobileANPRListItem)
+            {
+                Config.EnableMobileANPRCam = (bool)EnableMobileANPRListItem.SelectedValue;
+            }
+            else
+            {
+                if (sender != EnableMobileANPR2ListItem)
+                    return;
+                Config.EnableMobileANPRCam2 = (bool)EnableMobileANPR2ListItem.SelectedValue;
+            }
         }
 
         private static DisplayItemsCollection GetBooleanValues()

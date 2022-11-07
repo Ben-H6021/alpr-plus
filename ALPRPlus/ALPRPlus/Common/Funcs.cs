@@ -87,7 +87,7 @@ namespace Stealth.Plugins.ALPRPlus.Common
         }
         internal static bool IsSTPRunning()
         {
-            return IsLSPDFRPluginRunning("STP", new Version(0, 0, 0, 0));
+            return IsLSPDFRPluginRunning("Stop The Ped", new Version(0, 0, 0, 0));
         }
 
         internal static bool IsLSPDFRPluginRunning(string pName, Version pMinVersion = null)
